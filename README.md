@@ -50,3 +50,6 @@ python train.py -wp 'Assignment 1' -we 'cs22m006' -d 'mnist' -lr 0.01 -a 'sigmoi
 | `-nhl`, `--num_layers` | 1 | Number of hidden layers used in feedforward neural network. | 
 | `-sz`, `--hidden_size` | 4 | Number of hidden neurons in a feedforward layer. |
 | `-a`, `--activation` | sigmoid | choices:  ["sigmoid", "tanh", "reLU"] |
+
+# Report Link
+https://wandb.ai/cs22m006/Assignment%201/reports/CS6910-Assignment-1--VmlldzozODE4MjA1
