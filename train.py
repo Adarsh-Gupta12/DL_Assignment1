@@ -4,13 +4,13 @@ from keras.datasets import mnist
 import numpy as np
 import random
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 import argparse
 
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 k = len(class_names)
 
 def initializeWeightAndBias(layer_dims, init_mode):
+  #loading the dataset
   W = []
   bias = []
   np.random.seed(3)
@@ -26,7 +26,6 @@ def initializeWeightAndBias(layer_dims, init_mode):
     for layer_num in range(len(layer_dims)-1):
       W.append(np.random.randn(layer_dims[layer_num+1], layer_dims[layer_num]))
       bias.append((np.random.randn(layer_dims[layer_num+1],1)))
-  # print("inside", len(W), len(bias), len(layer_dims))
   return W, bias
 
 def feedForward(W, bias, X, num_hidden_layers, layer_dims, activation_fun = "tanh"):
@@ -161,8 +160,10 @@ def mean_squared_error(y, y_hat, W, weight_decay):
 
 def calculate_accuracy_and_loss(W, bias, X, y, num_hidden_layers, layer_dims, activation_fun, weight_decay, loss_function, y_one_hot):
   hL, _, _ = feedForward(W, bias, X, num_hidden_layers, layer_dims, activation_fun)
+  #finding predicted class for all the datapoints
   predictions = np.argmax(hL, axis = 0)
-  acc = accuracy_score(y, predictions)*100
+  #counting the elements which has predicted class same as original class
+  acc = np.sum(y == predictions)/predictions.shape[0]*100
   if(loss_function == "cross_entropy"):
     loss = cross_entropy(y_one_hot, hL, W, weight_decay)
   else:
@@ -170,36 +171,55 @@ def calculate_accuracy_and_loss(W, bias, X, y, num_hidden_layers, layer_dims, ac
   return acc, loss
 
 def generate_one_hot(n, true_label):
+  #generating one hot matrix, where all the elements of column i will be set to 0, except the true class index of image i, which will be set to 1
   y_one_hot = np.zeros((10, n))
   for i in range(n):
     y_one_hot[true_label[i]][i] = 1
   return y_one_hot
 
+def calculateTestAccuracy(testX, testy, layer_dims, num_hidden_layers, neurons_in_each_layer, batch_size, W, bias, activation_fun):
+  batch_count = batch_size
+  count = 0
+  for i in range(0, len(testX), batch_size):
+    #if we are left with lesser data points compared to batch size, still we don't want to ignore those data points
+    if(i+batch_size>len(testX)):
+      batch_count = len(testX)-i-1
+    #calling feed forward to get the prediction class
+    hL, activation, preactivation = feedForward(W, bias, testX[i:i+batch_count], num_hidden_layers, layer_dims, activation_fun)
+    for j in range(i, i+batch_count):
+      if(np.argmax(hL[:,(j-i)]) == testy[j]):
+        count+=1
+  print("Accuracy on test data", (100.0*count)/len(testX))
+  return (100.0*count)/len(testX)
+
 def optimizers(trainX, trainy, validationX, validationy, testX, testy, wandb_project, wandb_entity, num_hidden_layers, neurons_in_each_layer, epochs, learning_rate, batch_size, init_mode, activation_fun, loss_function, optimizer, momentum, beta, beta1, beta2, weight_decay, epsilon):
   wandb.init(
       project=wandb_project,
-      entity=wandb_entity,
-      name="Assignment1_optimizer"
+      entity=wandb_entity
   )
   num_images = len(trainX)
   layer_dims = [trainX.shape[1]]
   for i in range(num_hidden_layers):
     layer_dims.append(neurons_in_each_layer)
   layer_dims.append(k)
+  #initializing weights and biases
   W, bias = initializeWeightAndBias(layer_dims, init_mode)
 
   y_one_hot, y_one_hot_val = generate_one_hot(num_images, trainy), generate_one_hot(len(validationy), validationy)
   
+  #initializing variables which is going to used in optimizers
   v_W = [0]*(num_hidden_layers+1)
   v_bias, m_W, m_bias, gradientW, gradientBias, look_ahead_W, look_ahead_bias, previous_updates_W, previous_updates_Bias = v_W.copy(), v_W.copy(), v_W.copy(), v_W.copy(), v_W.copy(), v_W.copy(), v_W.copy(), v_W.copy(), v_W.copy()
   t = 1 #for adam
-  run_name = "lr_{}_ac_{}_in_{}_op_{}_bs_{}_L2_{}_ep_{}_nn_{}_nh_{}".format(learning_rate, activation_fun, init_mode, optimizer, batch_size, weight_decay, epochs, neurons_in_each_layer, num_hidden_layers)
+  #setting the run name for wandb
+  run_name = "lr_{}_ac_{}_in_{}_op_{}_bs_{}_L2_{}_ep_{}_nn_{}_nh_{}_loss_{}".format(learning_rate, activation_fun, init_mode, optimizer, batch_size, weight_decay, epochs, neurons_in_each_layer, num_hidden_layers, loss_function)
   y_pred = []
   for iterationNumber in range(epochs):
     loss=0
     val_loss = 0
     batch_count = batch_size
     for i in range(0, num_images, batch_size):
+      #if we are left with lesser data points compared to batch size, still we don't want to ignore those data points
       if(i+batch_size >= num_images):
         batch_count = num_images-i
 
@@ -222,6 +242,10 @@ def optimizers(trainX, trainy, validationX, validationy, testX, testy, wandb_pro
         gradientW, gradientBias = backward_propogation(y_one_hot[:,i:i+batch_count], trainX[i:i+batch_count], trainy[i:i+batch_count], look_ahead_W, look_ahead_bias, activation, preactivation, num_hidden_layers, batch_size, activation_fun, weight_decay, loss_function)
         W, bias, v_W, v_bias, m_W, m_bias = updateParamAdam(W, bias, gradientW, gradientBias, v_W, v_bias, m_W, m_bias, t, learning_rate, beta1, beta2, epsilon)
         t += 1
+
+      elif optimizer == 'insert your optimizer here':
+        #write the update rules and calling of feedforward and backprop here
+        pass
 
       else:
         hL, activation, preactivation = feedForward(W, bias, trainX[i:i+batch_count], num_hidden_layers, layer_dims, activation_fun)
@@ -247,10 +271,11 @@ def optimizers(trainX, trainy, validationX, validationy, testX, testy, wandb_pro
     val_acc, val_loss = calculate_accuracy_and_loss(W, bias, validationX, validationy, num_hidden_layers, layer_dims, activation_fun, weight_decay, loss_function, y_one_hot_val)
     print("training_accuracy:", train_acc, "validation_accuracy:", val_acc, "training_loss:", loss/(len(trainX)), "validation loss:", val_loss/len(validationX), "epoch:", iterationNumber)
     wandb.log({"training_accuracy": train_acc, "validation_accuracy": val_acc, "training_loss": loss/(len(trainX)), "validation loss": val_loss/len(validationX), 'epoch': iterationNumber})
+  test_acc = calculateTestAccuracy(testX, testy, layer_dims, num_hidden_layers, neurons_in_each_layer, batch_size, W, bias, activation_fun)
+  wandb.log({"test accuracy": test_acc})
   wandb.run.name = run_name
   wandb.run.save()
   wandb.run.finish()
-  calculateTestAccuracy(testX, testy, layer_dims, num_hidden_layers, neurons_in_each_layer, batch_size, W, bias, activation_fun)
 
 def preProcessing(params):
   dataset = params.dataset
@@ -264,19 +289,6 @@ def preProcessing(params):
   testX = testX/255.0
   trainX, validationX, trainy, validationy = train_test_split(x_train, y_train, random_state=104, test_size=0.1, shuffle=True)
   optimizers(trainX, trainy, validationX, validationy, testX, testy, params.wandb_project, params.wandb_entity, params.num_layers, params.hidden_size, params.epochs, params.learning_rate, params.batch_size, params.weight_init, params.activation, params.loss, params.optimizer, params.momentum, params.beta, params.beta1, params.beta2, params.weight_decay, params.epsilon)
-
-
-def calculateTestAccuracy(testX, testy, layer_dims, num_hidden_layers, neurons_in_each_layer, batch_size, W, bias, activation_fun):
-  batch_count = batch_size
-  count = 0
-  for i in range(0, len(testX), batch_size):
-    if(i+batch_size>len(testX)):
-      batch_count = len(testX)-i-1
-    hL, activation, preactivation = feedForward(W, bias, testX[i:i+batch_count], num_hidden_layers, layer_dims, activation_fun)
-    for j in range(i, i+batch_count):
-      if(np.argmax(hL[:,(j-i)]) == testy[j]):
-        count+=1
-  print("Accuracy on test data", (100.0*count)/len(testX))
 
 parser = argparse.ArgumentParser(description='calculate accuracy and loss for given hyperparameters')
 parser.add_argument('-wp', '--wandb_project', type=str, help='wandb project name', default='Assignment 1')
