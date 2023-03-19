@@ -1,12 +1,13 @@
 # DL_Assignment1
 ## Author : Adarsh Gupta CS22M006
 ## Overview
-The proh=ject is to train fashion-mnist and mnist dataset, which consists of 70000 images of size 28*28.     
-Using various optimizers like SGD, momentum, rmsprop, adam, nadam, nag, etc. optimizers to train the dataset
+The project is to train fashion-mnist and mnist dataset, which consists of 70000 images of size 28*28.     
+Using various optimizers like SGD, momentum, rmsprop, adam, nadam, nag, etc. optimizers to train the dataset.
 
 ## Folder structure
 * **optimizers_wandb.ipynb:** Contains code to run sweep with various hyperparameter configurations and plot confusion matrix. This also contain implementation of all the optimizers. It also contains all the functions which are required to train the model.
 * **train.py:** It contains code to train the model, as well as code to support the training of model using command line interface. Used **ArgParse** to support this feature.
+* **requirements.txt:** Contains all the libraries needed to run this project.
  
 ## Instructions to train and evaluate various models
 
@@ -25,7 +26,7 @@ python train.py -wp 'Assignment 1' -we 'cs22m006' -d 'mnist' -lr 0.01 -a 'sigmoi
 
 3. After running the command, it will print accuracies and loss. It will also log accuracies and loss in wandb.
 
-4. **Pass wandb entity as your username only, otherwise it will give error.**
+4. **Pass wandb entity as your wandb username only, otherwise it will give error.**
 
 5. Here is the list of hyperparameter that you can pass to train the model.
 
@@ -48,4 +49,4 @@ python train.py -wp 'Assignment 1' -we 'cs22m006' -d 'mnist' -lr 0.01 -a 'sigmoi
 | `-w_i`, `--weight_init` | random | choices:  ["random", "xavier"] | 
 | `-nhl`, `--num_layers` | 1 | Number of hidden layers used in feedforward neural network. | 
 | `-sz`, `--hidden_size` | 4 | Number of hidden neurons in a feedforward layer. |
-| `-a`, `--activation` | sigmoid | choices:  ["identity", "sigmoid", "tanh", "reLU"] |
+| `-a`, `--activation` | sigmoid | choices:  ["sigmoid", "tanh", "reLU"] |
