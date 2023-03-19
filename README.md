@@ -1,7 +1,7 @@
 # DL_Assignment1
 ## Author : Adarsh Gupta CS22M006
 ## Overview
-Training fashion-mnist and mnist dataset, which consists of 70000 images of size 28*28.     
+The proh=ject is to train fashion-mnist and mnist dataset, which consists of 70000 images of size 28*28.     
 Using various optimizers like SGD, momentum, rmsprop, adam, nadam, nag, etc. optimizers to train the dataset
 
 ## Folder structure
@@ -45,7 +45,7 @@ python train.py -wp 'Assignment 1' -we 'cs22m006' -d 'mnist' -lr 0.01 -a 'sigmoi
 | `-beta2`, `--beta2` | 0.5 | Beta2 used by adam and nadam optimizers. |
 | `-eps`, `--epsilon` | 0.000001 | Epsilon used by optimizers. |
 | `-w_d`, `--weight_decay` | .0 | Weight decay used by optimizers. |
-| `-w_i`, `--weight_init` | random | choices:  ["random", "Xavier"] | 
+| `-w_i`, `--weight_init` | random | choices:  ["random", "xavier"] | 
 | `-nhl`, `--num_layers` | 1 | Number of hidden layers used in feedforward neural network. | 
 | `-sz`, `--hidden_size` | 4 | Number of hidden neurons in a feedforward layer. |
-| `-a`, `--activation` | sigmoid | choices:  ["identity", "sigmoid", "tanh", "ReLU"] |
+| `-a`, `--activation` | sigmoid | choices:  ["identity", "sigmoid", "tanh", "reLU"] |
